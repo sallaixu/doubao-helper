@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="permission_card_margin">16dp</dimen>
+    <dimen name="permission_card_padding">20dp</dimen>
+    <dimen name="permission_card_corner">16dp</dimen>
+    <dimen name="overlay_text_size">18sp</dimen>
+    <dimen name="overlay_text_size_large">24sp</dimen>
+    <dimen name="overlay_status_bar_height">40dp</dimen>
+    <dimen name="overlay_toolbar_height">44dp</dimen>
+    <dimen name="overlay_message_padding">12dp</dimen>
+    <dimen name="overlay_message_spacing">8dp</dimen>
+</resources>
