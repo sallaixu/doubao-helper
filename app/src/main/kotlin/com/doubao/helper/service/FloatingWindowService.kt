@@ -3,14 +3,11 @@ package com.doubao.helper.service
 import android.app.Notification
 import android.app.Service
 import android.content.Intent
-import android.graphics.PixelFormat
 import android.os.IBinder
-import android.util.Log
-import android.view.Gravity
 import android.view.WindowManager
 import com.doubao.helper.App
 import com.doubao.helper.R
-import com.doubao.helper.overlay.OverlayView
+import com.doubao.helper.overlay.OverlayManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,15 +17,14 @@ import kotlinx.coroutines.launch
 class FloatingWindowService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private var windowManager: WindowManager? = null
-    private var overlayView: OverlayView? = null
+    private var overlayManager: OverlayManager? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
         startForeground(App.NOTIFICATION_ID, createNotification())
-        showOverlay()
+        setupOverlay()
         collectMessages()
     }
 
@@ -36,41 +32,19 @@ class FloatingWindowService : Service() {
         return START_STICKY
     }
 
-    private fun showOverlay() {
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-
-        overlayView = OverlayView(this).apply {
+    private fun setupOverlay() {
+        val windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        overlayManager = OverlayManager(this, windowManager).apply {
             onClose = { stopSelf() }
-            onMinimize = {
-                // 移除悬浮窗但保持服务运行
-                overlayView?.let { view ->
-                    windowManager?.removeView(view)
-                }
-            }
-            onPauseToggle = {
-                Log.d(TAG, "Pause toggled")
-            }
+            show()
         }
-
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-        }
-
-        windowManager?.addView(overlayView, params)
     }
 
     private fun collectMessages() {
         val repository = (application as App).chatRepository
         serviceScope.launch {
             repository.messages.collect { message ->
-                overlayView?.appendMessage(message)
+                overlayManager?.appendMessage(message)
             }
         }
     }
@@ -86,9 +60,8 @@ class FloatingWindowService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        overlayView?.let { windowManager?.removeView(it) }
-        overlayView = null
-        windowManager = null
+        overlayManager?.destroy()
+        overlayManager = null
         serviceScope.cancel()
     }
 
