@@ -11,14 +11,14 @@ import android.widget.TextView
 import com.doubao.helper.R
 import com.doubao.helper.model.ChatMessage
 import com.doubao.helper.model.Sender
-import com.google.android.material.button.MaterialButton
+import android.widget.Button
 
 class OverlayView(context: Context) : LinearLayout(context) {
 
     private val messageContainer: LinearLayout
     private val scrollView: ScrollView
     private val tvStatus: TextView
-    private val btnPause: MaterialButton
+    private val btnPause: Button
     private val btnClose: ImageView
     private val btnMinimize: ImageView
 
