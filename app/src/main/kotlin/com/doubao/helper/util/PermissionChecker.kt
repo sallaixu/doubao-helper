@@ -1,9 +1,8 @@
 package com.doubao.helper.util
 
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.provider.Settings
-import android.view.accessibility.AccessibilityManager
+import android.text.TextUtils
 
 object PermissionChecker {
 
@@ -12,13 +11,23 @@ object PermissionChecker {
     }
 
     fun hasAccessibilityPermission(context: Context): Boolean {
-        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-        val enabledServices = am.getEnabledAccessibilityServiceList(
-            AccessibilityServiceInfo.FEEDBACK_ALL_MASK
-        )
-        return enabledServices.any {
-            it.resolveInfo.serviceInfo.packageName == context.packageName
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+
+        if (enabledServices.isEmpty()) return false
+
+        val colonSplitter = TextUtils.SimpleStringSplitter(':')
+        colonSplitter.setString(enabledServices)
+
+        while (colonSplitter.hasNext()) {
+            val componentName = colonSplitter.next()
+            if (componentName.startsWith(context.packageName)) {
+                return true
+            }
         }
+        return false
     }
 
     fun allPermissionsGranted(context: Context): Boolean {
