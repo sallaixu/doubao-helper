@@ -16,6 +16,8 @@
     <string name="overlay_btn_pause">暂停</string>
     <string name="overlay_btn_resume">继续</string>
     <string name="overlay_btn_close">关闭</string>
+    <string name="overlay_btn_debug">选区调试</string>
+    <string name="selection_mode_hint">点击屏幕选择要监听的区域，点悬浮球退出</string>
     <string name="notification_channel_name">豆包助手服务</string>
     <string name="notification_title">豆包助手运行中</string>
     <string name="notification_text">正在监听豆包对话内容</string>

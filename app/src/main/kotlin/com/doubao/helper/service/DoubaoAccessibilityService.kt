@@ -29,11 +29,21 @@ class DoubaoAccessibilityService : AccessibilityService() {
         val rootNode = rootInActiveWindow ?: return
 
         try {
-            val messages = NodeParser.parseMessages(rootNode, App.DOUBAO_PACKAGE)
+            val app = application as App
+
+            if (app.isSelectionMode) {
+                // 选区模式下不解析消息，等待用户点击
+                return
+            }
+
+            val rules = app.monitorRules
+            if (rules.isEmpty()) return
+
+            val messages = NodeParser.parseByRules(rootNode, rules, App.DOUBAO_PACKAGE)
             if (messages.isEmpty()) return
 
             serviceScope.launch {
-                val repository = (application as App).chatRepository
+                val repository = app.chatRepository
                 for (message in messages) {
                     repository.emitMessage(message)
                 }
@@ -42,6 +52,19 @@ class DoubaoAccessibilityService : AccessibilityService() {
             Log.e(TAG, "Error parsing accessibility event", e)
         } finally {
             rootNode.recycle()
+        }
+    }
+
+    /**
+     * 根据屏幕坐标查找节点（供选区模式调用）
+     */
+    fun findNodeAtPoint(x: Int, y: Int): com.doubao.helper.model.DebugNodeInfo? {
+        val rootNode = rootInActiveWindow ?: return null
+        return try {
+            NodeParser.findNodeAtPoint(rootNode, x, y)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error finding node at point", e)
+            null
         }
     }
 
@@ -54,13 +77,20 @@ class DoubaoAccessibilityService : AccessibilityService() {
         Log.i(TAG, "Accessibility service connected")
 
         serviceInfo = serviceInfo.apply {
-            // 动态设置监听的包名，便于后续配置
             packageNames = arrayOf(App.DOUBAO_PACKAGE)
+        }
+
+        // 注册节点查找回调，供 OverlayManager 通过 ChatRepository 调用
+        val app = application as App
+        app.chatRepository.nodeFindCallback = { x, y ->
+            findNodeAtPoint(x, y)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        val app = application as App
+        app.chatRepository.nodeFindCallback = null
         serviceScope.cancel()
     }
 
