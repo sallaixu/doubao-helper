@@ -33,4 +33,9 @@ object PermissionChecker {
     fun allPermissionsGranted(context: Context): Boolean {
         return hasOverlayPermission(context) && hasAccessibilityPermission(context)
     }
+
+    fun hasRecordAudioPermission(context: Context): Boolean {
+        return context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
 }

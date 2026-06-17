@@ -1,6 +1,7 @@
 package com.doubao.helper.util
 
 import android.graphics.Rect
+import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import com.doubao.helper.model.ChatMessage
 import com.doubao.helper.model.DebugNodeInfo
@@ -9,9 +10,10 @@ import com.doubao.helper.model.Sender
 
 object NodeParser {
 
+    private const val TAG = "NodeParser"
+
     /**
      * 根据点击坐标找到最匹配的无障碍节点。
-     * 优先选择最深层（最具体）的、有文本内容的、面积最小的节点。
      */
     fun findNodeAtPoint(rootNode: AccessibilityNodeInfo, x: Int, y: Int): DebugNodeInfo? {
         var bestNode: DebugNodeInfo? = null
@@ -22,7 +24,6 @@ object NodeParser {
             val bounds = Rect()
             node.getBoundsInScreen(bounds)
 
-            // 检查坐标是否在节点范围内
             if (!bounds.contains(x, y)) {
                 node.recycle()
                 return
@@ -30,7 +31,6 @@ object NodeParser {
 
             val text = node.text?.toString()?.trim() ?: ""
 
-            // 如果节点有文本，且面积更小或更深，更新最佳匹配
             if (text.isNotEmpty()) {
                 val area = bounds.width().toLong() * bounds.height().toLong()
                 if (depth > bestDepth || (depth == bestDepth && area < bestArea)) {
@@ -47,7 +47,6 @@ object NodeParser {
                 }
             }
 
-            // 继续遍历子节点
             for (i in 0 until node.childCount) {
                 node.getChild(i)?.let { child ->
                     traverse(child, depth + 1)
@@ -61,7 +60,6 @@ object NodeParser {
 
     /**
      * 根据监听规则从节点树中提取对话消息。
-     * 匹配条件：viewId 以 rule.viewIdPattern 开头，className 一致，文本长度 >= textMinLength
      */
     fun parseByRules(
         rootNode: AccessibilityNodeInfo,
@@ -71,6 +69,16 @@ object NodeParser {
         if (rules.isEmpty()) return emptyList()
         val messages = mutableListOf<ChatMessage>()
         traverseAndMatch(rootNode, rules, doubaoPackage, messages, 0)
+
+        // 日志：输出本次解析到的所有消息
+        if (messages.isNotEmpty()) {
+            Log.d(TAG, "parseByRules: found ${messages.size} messages")
+            for ((index, msg) in messages.withIndex()) {
+                Log.d(TAG, "  [$index] regionKey=${msg.regionKey}, id=${msg.id}, " +
+                    "content=[${msg.content.take(50)}${if (msg.content.length > 50) "…" else ""}]")
+            }
+        }
+
         return messages
     }
 
@@ -89,21 +97,29 @@ object NodeParser {
         if (text.isNotEmpty()) {
             val viewId = node.viewIdResourceName ?: ""
             val className = node.className?.toString() ?: ""
+            val nodeBounds = Rect()
+            node.getBoundsInScreen(nodeBounds)
 
             for (rule in rules) {
-                if (matchesRule(viewId, className, text, rule)) {
-                    val bounds = Rect()
-                    node.getBoundsInScreen(bounds)
-                    val id = "${viewId}_${bounds.left}_${bounds.top}_${text.hashCode()}"
+                if (matchesRule(viewId, className, text, nodeBounds, rule)) {
+                    // 使用 viewId + 内容前缀hash 作为 regionKey（不依赖 bounds 坐标，避免滚动导致去重失效）
+                    val contentPrefixHash = text.take(30).hashCode()
+                    val regionKey = "${viewId}_${contentPrefixHash}"
+                    val id = "${regionKey}_${text.hashCode()}"
+
+                    Log.d(TAG, "match: viewId=$viewId, bounds=(${nodeBounds.left},${nodeBounds.top})-(${nodeBounds.right},${nodeBounds.bottom}), " +
+                        "regionKey=$regionKey, textLen=${text.length}, textHash=${text.hashCode()}, " +
+                        "text=[${text.take(40)}${if (text.length > 40) "…" else ""}]")
+
                     messages.add(
                         ChatMessage(
                             id = id,
                             content = text,
-                            sender = Sender.DOUBAO, // 规则匹配的默认为豆包消息
+                            sender = Sender.DOUBAO,
                             timestamp = System.currentTimeMillis()
                         )
                     )
-                    break // 一个节点只匹配一条规则
+                    break
                 }
             }
         }
@@ -115,25 +131,28 @@ object NodeParser {
         }
     }
 
-    private fun matchesRule(viewId: String, className: String, text: String, rule: MonitorRule): Boolean {
-        // viewId 匹配：精确匹配或前缀匹配
+    private fun matchesRule(viewId: String, className: String, text: String, nodeBounds: Rect, rule: MonitorRule): Boolean {
         val viewIdMatch = if (rule.viewIdPattern.isEmpty()) {
             true
         } else {
             viewId == rule.viewIdPattern || viewId.startsWith(rule.viewIdPattern)
         }
 
-        // className 匹配：如果规则指定了 className，则必须包含
         val classMatch = if (rule.className.isEmpty()) {
             true
         } else {
             className == rule.className || className.contains(rule.className)
         }
 
-        // 文本长度过滤
+        val boundsMatch = if (rule.boundsRegion != null) {
+            Rect.intersects(nodeBounds, rule.boundsRegion)
+        } else {
+            true
+        }
+
         val lengthMatch = text.length >= rule.textMinLength
 
-        return viewIdMatch && classMatch && lengthMatch
+        return viewIdMatch && classMatch && boundsMatch && lengthMatch
     }
 
     /**

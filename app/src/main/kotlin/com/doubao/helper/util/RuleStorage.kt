@@ -1,6 +1,7 @@
 package com.doubao.helper.util
 
 import android.content.Context
+import android.graphics.Rect
 import com.doubao.helper.model.MonitorRule
 import org.json.JSONArray
 import org.json.JSONObject
@@ -21,11 +22,22 @@ object RuleStorage {
         val array = JSONArray(json)
         for (i in 0 until array.length()) {
             val obj = array.getJSONObject(i)
+            val boundsRegion = if (obj.has("boundsRegion") && !obj.isNull("boundsRegion")) {
+                val br = obj.getJSONObject("boundsRegion")
+                Rect(
+                    br.getInt("left"),
+                    br.getInt("top"),
+                    br.getInt("right"),
+                    br.getInt("bottom")
+                )
+            } else null
+
             rules.add(
                 MonitorRule(
                     id = obj.getString("id"),
                     viewIdPattern = obj.getString("viewIdPattern"),
                     className = obj.getString("className"),
+                    boundsRegion = boundsRegion,
                     textMinLength = obj.getInt("textMinLength"),
                     description = obj.optString("description", "")
                 )
@@ -42,6 +54,14 @@ object RuleStorage {
             obj.put("id", rule.id)
             obj.put("viewIdPattern", rule.viewIdPattern)
             obj.put("className", rule.className)
+            obj.put("boundsRegion", rule.boundsRegion?.let {
+                JSONObject().apply {
+                    put("left", it.left)
+                    put("top", it.top)
+                    put("right", it.right)
+                    put("bottom", it.bottom)
+                }
+            })
             obj.put("textMinLength", rule.textMinLength)
             obj.put("description", rule.description)
             array.put(obj)
@@ -51,8 +71,10 @@ object RuleStorage {
 
     fun addRule(context: Context, rule: MonitorRule) {
         val rules = loadRules(context).toMutableList()
-        // 避免重复添加相同 viewIdPattern
-        rules.removeAll { it.viewIdPattern == rule.viewIdPattern && it.className == rule.className }
+        // 避免重复添加相同 className+boundsRegion 的规则
+        rules.removeAll {
+            it.className == rule.className && it.boundsRegion == rule.boundsRegion
+        }
         rules.add(rule)
         saveRules(context, rules)
     }

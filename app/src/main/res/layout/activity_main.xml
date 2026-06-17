@@ -140,6 +140,65 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Record Audio Permission Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="@dimen/permission_card_corner"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/permission_card_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/permission_record_audio_title"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/permission_record_audio_desc"
+                    android:textSize="13sp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvRecordAudioStatus"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/permission_not_granted"
+                        android:textColor="@color/primary_dark"
+                        android:textSize="13sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRecordAudioPermission"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="@string/permission_request"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Start Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStartHelper"
@@ -151,6 +210,131 @@
             android:text="@string/btn_start_helper"
             android:textSize="16sp"
             android:paddingHorizontal="40dp" />
+
+        <!-- Font Size Setting -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:id="@+id/tvFontSizeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="浮窗字体大小: 16sp"
+                android:textSize="13sp"
+                android:textColor="@color/on_surface"
+                android:layout_marginEnd="12dp" />
+
+            <SeekBar
+                android:id="@+id/seekBarFontSize"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="0"
+                android:max="200"
+                android:progress="60" />
+
+        </LinearLayout>
+
+        <!-- Standby Timeout Setting -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvStandbyTimeoutLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="待机超时: 3分钟"
+                android:textSize="13sp"
+                android:textColor="@color/on_surface"
+                android:layout_marginEnd="12dp" />
+
+            <SeekBar
+                android:id="@+id/seekBarStandbyTimeout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="1"
+                android:max="10"
+                android:progress="3" />
+
+        </LinearLayout>
+
+        <!-- Wakeup Word Setting -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="唤醒词: "
+                android:textSize="13sp"
+                android:textColor="@color/on_surface"
+                android:layout_marginEnd="4dp" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etWakeupWord"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="小豆小豆"
+                android:textSize="14sp"
+                android:hint="输入唤醒词"
+                android:inputType="text"
+                android:maxLines="1"
+                android:background="@android:color/transparent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveWakeupWord"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="保存"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+        <!-- Mic Button Config -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvMicConfigStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="麦克风按钮: 未配置"
+                android:textSize="13sp"
+                android:textColor="@color/secondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectMicButton"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="选择麦克风按钮"
+                android:textSize="13sp" />
+
+        </LinearLayout>
 
         <!-- Usage Hint -->
         <TextView

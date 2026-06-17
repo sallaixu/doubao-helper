@@ -46,4 +46,5 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(files("libs/sherpa-onnx-1.12.14.aar"))
 }

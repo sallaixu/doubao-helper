@@ -9,11 +9,11 @@
     <color name="secondary">#FF625B71</color>
     <color name="surface">#FFFFFBFE</color>
     <color name="on_surface">#FF1C1B1F</color>
-    <color name="overlay_background">#E0202020</color>
+    <color name="overlay_background">#FF000000</color>
     <color name="overlay_text">#FFE0E0E0</color>
     <color name="overlay_text_doubao">#FFB0C4FF</color>
-    <color name="overlay_status_bar">#CC303030</color>
-    <color name="overlay_toolbar">#CC282828</color>
+    <color name="overlay_status_bar">#FF000000</color>
+    <color name="overlay_toolbar">#FF000000</color>
     <color name="status_listening">#FF4CAF50</color>
     <color name="status_paused">#FFFF9800</color>
 </resources>
